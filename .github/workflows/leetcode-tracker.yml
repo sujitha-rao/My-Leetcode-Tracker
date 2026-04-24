@@ -22,9 +22,27 @@ jobs:
 
           USERNAME = os.environ["LEETCODE_USERNAME"]
           TODAY = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-          WEEKDAY = datetime.now(timezone.utc).isoweekday()  # 7 = Sunday
+          WEEKDAY = datetime.now(timezone.utc).isoweekday()
 
-          QUERY = """
+          HEADERS = {
+              "Content-Type": "application/json",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+              "Referer": "https://leetcode.com",
+              "Origin": "https://leetcode.com",
+          }
+
+          def graphql(query, variables=None):
+              payload = json.dumps({"query": query, "variables": variables or {}}).encode()
+              req = urllib.request.Request(
+                  "https://leetcode.com/graphql",
+                  data=payload,
+                  headers=HEADERS
+              )
+              with urllib.request.urlopen(req, timeout=15) as res:
+                  return json.loads(res.read())
+
+          # ── Query 1: stats + calendar + badges ───────────────────────
+          Q1 = """
           query($username: String!) {
             matchedUser(username: $username) {
               submitStats {
@@ -36,16 +54,8 @@ jobs:
                 submissionCalendar
               }
               badges {
-                id
                 displayName
                 creationDate
-                icon
-              }
-              recentAcSubmissionList(username: $username, limit: 10) {
-                id
-                title
-                titleSlug
-                timestamp
               }
               profile {
                 ranking
@@ -54,31 +64,38 @@ jobs:
           }
           """
 
-          payload = json.dumps({"query": QUERY, "variables": {"username": USERNAME}}).encode()
-          req = urllib.request.Request(
-              "https://leetcode.com/graphql",
-              data=payload,
-              headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
-          )
-          with urllib.request.urlopen(req) as res:
-              data = json.loads(res.read())["data"]["matchedUser"]
+          # ── Query 2: recent AC (top-level) ───────────────────────────
+          Q2 = """
+          query($username: String!) {
+            recentAcSubmissionList(username: $username, limit: 10) {
+              id
+              title
+              titleSlug
+              timestamp
+            }
+          }
+          """
 
-          # --- Parse stats ---
-          ac = data["submitStats"]["acSubmissionNum"]
+          d1 = graphql(Q1, {"username": USERNAME})["data"]["matchedUser"]
+          d2 = graphql(Q2, {"username": USERNAME})["data"]["recentAcSubmissionList"]
+
+          # Parse
+          ac     = d1["submitStats"]["acSubmissionNum"]
           easy   = next(x["count"] for x in ac if x["difficulty"] == "Easy")
           medium = next(x["count"] for x in ac if x["difficulty"] == "Medium")
           hard   = next(x["count"] for x in ac if x["difficulty"] == "Hard")
           total  = easy + medium + hard
+          streak      = d1["userCalendar"]["streak"]
+          active_days = d1["userCalendar"]["totalActiveDays"]
+          ranking     = d1["profile"]["ranking"]
+          heatmap_raw = json.loads(d1["userCalendar"]["submissionCalendar"])
+          badges      = d1["badges"]
+          recent_ac   = d2
 
-          streak       = data["userCalendar"]["streak"]
-          active_days  = data["userCalendar"]["totalActiveDays"]
-          ranking      = data["profile"]["ranking"]
-          heatmap_raw  = json.loads(data["userCalendar"]["submissionCalendar"])
-          badges       = data["badges"]
-          recent_ac    = data["recentAcSubmissionList"]
-
-          # ── 1. daily.csv ──────────────────────────────────────────────
           os.makedirs("leetcode/logs", exist_ok=True)
+          os.makedirs("leetcode/reports", exist_ok=True)
+
+          # ── 1. daily.csv ─────────────────────────────────────────────
           csv_path = "leetcode/logs/daily.csv"
           if not os.path.exists(csv_path):
               with open(csv_path, "w") as f:
@@ -86,7 +103,7 @@ jobs:
           with open(csv_path, "a") as f:
               f.write(f"{TODAY},{easy},{medium},{hard},{total},{streak},{active_days},{ranking}\n")
 
-          # ── 2. heatmap.json ───────────────────────────────────────────
+          # ── 2. heatmap.json ──────────────────────────────────────────
           heatmap_out = {
               datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d"): count
               for ts, count in heatmap_raw.items()
@@ -94,7 +111,7 @@ jobs:
           with open("leetcode/logs/heatmap.json", "w") as f:
               json.dump(heatmap_out, f, indent=2)
 
-          # ── 3. recent-ac.md ───────────────────────────────────────────
+          # ── 3. recent-ac.md ──────────────────────────────────────────
           lines = [f"# Recent Accepted Submissions — {TODAY}\n",
                    "| # | Problem | Date |",
                    "|---|---------|------|"]
@@ -105,46 +122,41 @@ jobs:
           with open("leetcode/logs/recent-ac.md", "w") as f:
               f.write("\n".join(lines) + "\n")
 
-          # ── 4. badges.md ──────────────────────────────────────────────
-          os.makedirs("leetcode/reports", exist_ok=True)
+          # ── 4. badges.md ─────────────────────────────────────────────
           blines = [f"# LeetCode Badges — {TODAY}\n",
                     f"Total badges earned: **{len(badges)}**\n",
                     "| Badge | Earned On |",
                     "|-------|-----------|"]
           for b in sorted(badges, key=lambda x: x.get("creationDate") or ""):
-              earned = b.get("creationDate") or "N/A"
-              blines.append(f"| {b['displayName']} | {earned} |")
+              blines.append(f"| {b['displayName']} | {b.get('creationDate', 'N/A')} |")
           with open("leetcode/reports/badges.md", "w") as f:
               f.write("\n".join(blines) + "\n")
 
-          # ── 5. weekly report (Sundays only) ───────────────────────────
+          # ── 5. weekly report (Sundays only) ──────────────────────────
           if WEEKDAY == 7:
               week = datetime.now(timezone.utc).strftime("%Y-W%V")
-              report = f"""# LeetCode Weekly Report — {week}
-          Generated: {TODAY}
-
-          ## Cumulative Solved
-          | Difficulty | Count |
-          |------------|-------|
-          | Easy       | {easy} |
-          | Medium     | {medium} |
-          | Hard       | {hard} |
-          | **Total**  | **{total}** |
-
-          ## Activity
-          - 🔥 Current Streak: **{streak} days**
-          - 📅 Total Active Days: **{active_days}**
-          - 🏅 Global Ranking: **{ranking}**
-          - 🎖️ Badges Earned: **{len(badges)}**
-
-          ## Recent AC Submissions
-          """
+              lines = [
+                  f"# LeetCode Weekly Report — {week}",
+                  f"Generated: {TODAY}\n",
+                  "## Cumulative Solved",
+                  "| Difficulty | Count |",
+                  "|------------|-------|",
+                  f"| Easy       | {easy} |",
+                  f"| Medium     | {medium} |",
+                  f"| Hard       | {hard} |",
+                  f"| **Total**  | **{total}** |\n",
+                  "## Activity",
+                  f"- 🔥 Current Streak: **{streak} days**",
+                  f"- 📅 Total Active Days: **{active_days}**",
+                  f"- 🏅 Global Ranking: **{ranking}**",
+                  f"- 🎖️ Badges Earned: **{len(badges)}**\n",
+                  "## Recent AC Submissions",
+              ]
               for s in recent_ac[:5]:
                   date = datetime.fromtimestamp(int(s["timestamp"]), tz=timezone.utc).strftime("%Y-%m-%d")
-                  report += f"- [{s['title']}](https://leetcode.com/problems/{s['titleSlug']}/) — {date}\n"
-
+                  lines.append(f"- [{s['title']}](https://leetcode.com/problems/{s['titleSlug']}/) — {date}")
               with open(f"leetcode/reports/week-{week}.md", "w") as f:
-                  f.write(report)
+                  f.write("\n".join(lines) + "\n")
 
           print(f"✅ Done — Total: {total}, Streak: {streak}, Active Days: {active_days}, Badges: {len(badges)}")
           PYEOF
