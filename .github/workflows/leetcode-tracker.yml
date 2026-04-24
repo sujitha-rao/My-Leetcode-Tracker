@@ -16,37 +16,144 @@ jobs:
 
       - name: Fetch LeetCode stats
         run: |
-          RESPONSE=$(curl -s -X POST https://leetcode.com/graphql \
-            -H "Content-Type: application/json" \
-            -d "{\"query\":\"query { matchedUser(username: \\\"$LEETCODE_USERNAME\\\") { submitStats { acSubmissionNum { difficulty count } } userCalendar { streak totalActiveDays } } }\"}")
+          python3 << 'PYEOF'
+          import urllib.request, json, os
+          from datetime import datetime, timezone
 
-          DATE=$(date +'%Y-%m-%d')
-          DAY=$(date +'%u')
+          USERNAME = os.environ["LEETCODE_USERNAME"]
+          TODAY = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+          WEEKDAY = datetime.now(timezone.utc).isoweekday()  # 7 = Sunday
 
-          EASY=$(echo $RESPONSE | python3 -c "import sys,json; s=json.load(sys.stdin)['data']['matchedUser']['submitStats']['acSubmissionNum']; print(next(x['count'] for x in s if x['difficulty']=='Easy'))")
-          MEDIUM=$(echo $RESPONSE | python3 -c "import sys,json; s=json.load(sys.stdin)['data']['matchedUser']['submitStats']['acSubmissionNum']; print(next(x['count'] for x in s if x['difficulty']=='Medium'))")
-          HARD=$(echo $RESPONSE | python3 -c "import sys,json; s=json.load(sys.stdin)['data']['matchedUser']['submitStats']['acSubmissionNum']; print(next(x['count'] for x in s if x['difficulty']=='Hard'))")
-          STREAK=$(echo $RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['matchedUser']['userCalendar']['streak'])")
-          TOTAL=$(echo $RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['matchedUser']['userCalendar']['totalActiveDays'])")
-          SOLVED=$((EASY + MEDIUM + HARD))
+          QUERY = """
+          query($username: String!) {
+            matchedUser(username: $username) {
+              submitStats {
+                acSubmissionNum { difficulty count }
+              }
+              userCalendar {
+                streak
+                totalActiveDays
+                submissionCalendar
+              }
+              badges {
+                id
+                displayName
+                creationDate
+                icon
+              }
+              recentAcSubmissionList(username: $username, limit: 10) {
+                id
+                title
+                titleSlug
+                timestamp
+              }
+              profile {
+                ranking
+              }
+            }
+          }
+          """
 
-          mkdir -p leetcode/logs leetcode/reports
+          payload = json.dumps({"query": QUERY, "variables": {"username": USERNAME}}).encode()
+          req = urllib.request.Request(
+              "https://leetcode.com/graphql",
+              data=payload,
+              headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+          )
+          with urllib.request.urlopen(req) as res:
+              data = json.loads(res.read())["data"]["matchedUser"]
 
-          if [ ! -f leetcode/logs/daily.csv ]; then
-            echo "date,easy,medium,hard,total,streak" > leetcode/logs/daily.csv
-          fi
+          # --- Parse stats ---
+          ac = data["submitStats"]["acSubmissionNum"]
+          easy   = next(x["count"] for x in ac if x["difficulty"] == "Easy")
+          medium = next(x["count"] for x in ac if x["difficulty"] == "Medium")
+          hard   = next(x["count"] for x in ac if x["difficulty"] == "Hard")
+          total  = easy + medium + hard
 
-          echo "$DATE,$EASY,$MEDIUM,$HARD,$SOLVED,$STREAK" >> leetcode/logs/daily.csv
+          streak       = data["userCalendar"]["streak"]
+          active_days  = data["userCalendar"]["totalActiveDays"]
+          ranking      = data["profile"]["ranking"]
+          heatmap_raw  = json.loads(data["userCalendar"]["submissionCalendar"])
+          badges       = data["badges"]
+          recent_ac    = data["recentAcSubmissionList"]
 
-          if [ "$DAY" -eq 7 ]; then
-            WEEK=$(date +'%Y-W%V')
-            printf "# LeetCode Weekly Report — %s\nGenerated: %s\n\n## Cumulative Solved\n| Difficulty | Count |\n|------------|-------|\n| Easy | %s |\n| Medium | %s |\n| Hard | %s |\n| **Total** | **%s** |\n\n## Streak\n- 🔥 Current Streak: **%s days**\n- 📅 Total Active Days: **%s**\n" \
-              "$WEEK" "$DATE" "$EASY" "$MEDIUM" "$HARD" "$SOLVED" "$STREAK" "$TOTAL" \
-              > leetcode/reports/week-$WEEK.md
-          fi
+          # ── 1. daily.csv ──────────────────────────────────────────────
+          os.makedirs("leetcode/logs", exist_ok=True)
+          csv_path = "leetcode/logs/daily.csv"
+          if not os.path.exists(csv_path):
+              with open(csv_path, "w") as f:
+                  f.write("date,easy,medium,hard,total,streak,active_days,ranking\n")
+          with open(csv_path, "a") as f:
+              f.write(f"{TODAY},{easy},{medium},{hard},{total},{streak},{active_days},{ranking}\n")
 
+          # ── 2. heatmap.json ───────────────────────────────────────────
+          heatmap_out = {
+              datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d"): count
+              for ts, count in heatmap_raw.items()
+          }
+          with open("leetcode/logs/heatmap.json", "w") as f:
+              json.dump(heatmap_out, f, indent=2)
+
+          # ── 3. recent-ac.md ───────────────────────────────────────────
+          lines = [f"# Recent Accepted Submissions — {TODAY}\n",
+                   "| # | Problem | Date |",
+                   "|---|---------|------|"]
+          for i, s in enumerate(recent_ac, 1):
+              date = datetime.fromtimestamp(int(s["timestamp"]), tz=timezone.utc).strftime("%Y-%m-%d")
+              url  = f"https://leetcode.com/problems/{s['titleSlug']}/"
+              lines.append(f"| {i} | [{s['title']}]({url}) | {date} |")
+          with open("leetcode/logs/recent-ac.md", "w") as f:
+              f.write("\n".join(lines) + "\n")
+
+          # ── 4. badges.md ──────────────────────────────────────────────
+          os.makedirs("leetcode/reports", exist_ok=True)
+          blines = [f"# LeetCode Badges — {TODAY}\n",
+                    f"Total badges earned: **{len(badges)}**\n",
+                    "| Badge | Earned On |",
+                    "|-------|-----------|"]
+          for b in sorted(badges, key=lambda x: x.get("creationDate") or ""):
+              earned = b.get("creationDate") or "N/A"
+              blines.append(f"| {b['displayName']} | {earned} |")
+          with open("leetcode/reports/badges.md", "w") as f:
+              f.write("\n".join(blines) + "\n")
+
+          # ── 5. weekly report (Sundays only) ───────────────────────────
+          if WEEKDAY == 7:
+              week = datetime.now(timezone.utc).strftime("%Y-W%V")
+              report = f"""# LeetCode Weekly Report — {week}
+          Generated: {TODAY}
+
+          ## Cumulative Solved
+          | Difficulty | Count |
+          |------------|-------|
+          | Easy       | {easy} |
+          | Medium     | {medium} |
+          | Hard       | {hard} |
+          | **Total**  | **{total}** |
+
+          ## Activity
+          - 🔥 Current Streak: **{streak} days**
+          - 📅 Total Active Days: **{active_days}**
+          - 🏅 Global Ranking: **{ranking}**
+          - 🎖️ Badges Earned: **{len(badges)}**
+
+          ## Recent AC Submissions
+          """
+              for s in recent_ac[:5]:
+                  date = datetime.fromtimestamp(int(s["timestamp"]), tz=timezone.utc).strftime("%Y-%m-%d")
+                  report += f"- [{s['title']}](https://leetcode.com/problems/{s['titleSlug']}/) — {date}\n"
+
+              with open(f"leetcode/reports/week-{week}.md", "w") as f:
+                  f.write(report)
+
+          print(f"✅ Done — Total: {total}, Streak: {streak}, Active Days: {active_days}, Badges: {len(badges)}")
+          PYEOF
+
+      - name: Commit changes
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add leetcode/
-          git commit -m "leetcode: stats update $DATE (solved: $SOLVED, streak: $STREAK)"
+          DATE=$(date +'%Y-%m-%d')
+          git commit -m "leetcode: daily update $DATE" || echo "Nothing to commit"
           git push
