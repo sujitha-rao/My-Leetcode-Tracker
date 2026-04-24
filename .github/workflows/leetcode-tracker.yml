@@ -1,2 +1,52 @@
+name: LeetCode Tracker
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
 env:
   LEETCODE_USERNAME: sujitharao93
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch LeetCode stats
+        run: |
+          RESPONSE=$(curl -s -X POST https://leetcode.com/graphql \
+            -H "Content-Type: application/json" \
+            -d "{\"query\":\"query { matchedUser(username: \\\"$LEETCODE_USERNAME\\\") { submitStats { acSubmissionNum { difficulty count } } userCalendar { streak totalActiveDays } } }\"}")
+
+          DATE=$(date +'%Y-%m-%d')
+          DAY=$(date +'%u')
+
+          EASY=$(echo $RESPONSE | python3 -c "import sys,json; s=json.load(sys.stdin)['data']['matchedUser']['submitStats']['acSubmissionNum']; print(next(x['count'] for x in s if x['difficulty']=='Easy'))")
+          MEDIUM=$(echo $RESPONSE | python3 -c "import sys,json; s=json.load(sys.stdin)['data']['matchedUser']['submitStats']['acSubmissionNum']; print(next(x['count'] for x in s if x['difficulty']=='Medium'))")
+          HARD=$(echo $RESPONSE | python3 -c "import sys,json; s=json.load(sys.stdin)['data']['matchedUser']['submitStats']['acSubmissionNum']; print(next(x['count'] for x in s if x['difficulty']=='Hard'))")
+          STREAK=$(echo $RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['matchedUser']['userCalendar']['streak'])")
+          TOTAL=$(echo $RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['matchedUser']['userCalendar']['totalActiveDays'])")
+          SOLVED=$((EASY + MEDIUM + HARD))
+
+          mkdir -p leetcode/logs leetcode/reports
+
+          if [ ! -f leetcode/logs/daily.csv ]; then
+            echo "date,easy,medium,hard,total,streak" > leetcode/logs/daily.csv
+          fi
+
+          echo "$DATE,$EASY,$MEDIUM,$HARD,$SOLVED,$STREAK" >> leetcode/logs/daily.csv
+
+          if [ "$DAY" -eq 7 ]; then
+            WEEK=$(date +'%Y-W%V')
+            printf "# LeetCode Weekly Report — %s\nGenerated: %s\n\n## Cumulative Solved\n| Difficulty | Count |\n|------------|-------|\n| Easy | %s |\n| Medium | %s |\n| Hard | %s |\n| **Total** | **%s** |\n\n## Streak\n- 🔥 Current Streak: **%s days**\n- 📅 Total Active Days: **%s**\n" \
+              "$WEEK" "$DATE" "$EASY" "$MEDIUM" "$HARD" "$SOLVED" "$STREAK" "$TOTAL" \
+              > leetcode/reports/week-$WEEK.md
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add leetcode/
+          git commit -m "leetcode: stats update $DATE (solved: $SOLVED, streak: $STREAK)"
+          git push
