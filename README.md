@@ -3,18 +3,17 @@
 > Daily automated tracking of LeetCode progress — powered by GitHub Actions
 
 ---
-
 ## 📊 Live Stats
 
-![LeetCode Stats](https://leetcode-badge-showcase.vercel.app/api?username=sujitharao93&theme=dark)
+[![LeetCode Stats](https://leetcard.jacoblin.cool/sujitharao93?theme=dark&font=Karma&ext=heatmap)](https://leetcode.com/u/sujitharao93/)
 
 &nbsp;
 
-![Total Solved](https://img.shields.io/badge/dynamic/json?url=https://leetcode-stats-api.herokuapp.com/sujitharao93&query=$.totalSolved&label=Total%20Solved&color=orange&style=for-the-badge)
-![Easy](https://img.shields.io/badge/dynamic/json?url=https://leetcode-stats-api.herokuapp.com/sujitharao93&query=$.easySolved&label=Easy&color=00b8a3&style=for-the-badge)
-![Medium](https://img.shields.io/badge/dynamic/json?url=https://leetcode-stats-api.herokuapp.com/sujitharao93&query=$.mediumSolved&label=Medium&color=ffa116&style=for-the-badge)
-![Hard](https://img.shields.io/badge/dynamic/json?url=https://leetcode-stats-api.herokuapp.com/sujitharao93&query=$.hardSolved&label=Hard&color=ff375f&style=for-the-badge)
-![Ranking](https://img.shields.io/badge/dynamic/json?url=https://leetcode-stats-api.herokuapp.com/sujitharao93&query=$.ranking&label=Ranking&color=blue&style=for-the-badge)
+![Total Solved](https://img.shields.io/badge/dynamic/json?url=https://alfa-leetcode-api.onrender.com/sujitharao93&query=$.totalSolved&label=Total%20Solved&color=orange&style=for-the-badge)
+![Easy](https://img.shields.io/badge/dynamic/json?url=https://alfa-leetcode-api.onrender.com/sujitharao93&query=$.easySolved&label=Easy&color=00b8a3&style=for-the-badge)
+![Medium](https://img.shields.io/badge/dynamic/json?url=https://alfa-leetcode-api.onrender.com/sujitharao93&query=$.mediumSolved&label=Medium&color=ffa116&style=for-the-badge)
+![Hard](https://img.shields.io/badge/dynamic/json?url=https://alfa-leetcode-api.onrender.com/sujitharao93&query=$.hardSolved&label=Hard&color=ff375f&style=for-the-badge)
+![Ranking](https://img.shields.io/badge/dynamic/json?url=https://alfa-leetcode-api.onrender.com/sujitharao93&query=$.ranking&label=Ranking&color=blue&style=for-the-badge)
 
 ---
 
