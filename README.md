@@ -1,6 +1,6 @@
 # 👨‍💻 sujitharao93's LeetCode Journey
 
-> Daily automated tracking of my LeetCode progress — powered by GitHub Actions
+> Daily automated tracking of LeetCode progress — powered by GitHub Actions
 
 ---
 
@@ -23,13 +23,12 @@
 ```
 📁 leetcode/
 ├── 📁 logs/
-│   └── daily.csv          # Daily snapshot of solved counts + streak
-├── 📁 reports/
-│   └── week-YYYY-WXX.md   # Auto-generated every Sunday
-└── 📁 solutions/          # (Optional) Your solution files
-    ├── easy/
-    ├── medium/
-    └── hard/
+│   ├── daily.csv         # Daily snapshot: solved counts, streak, active days, ranking
+│   ├── heatmap.json      # Full submission calendar (date → submission count)
+│   └── recent-ac.md      # Last 10 accepted submissions with links
+└── 📁 reports/
+    ├── badges.md          # All badges earned with dates
+    └── week-YYYY-WXX.md  # Auto-generated every Sunday
 ```
 
 ---
@@ -38,48 +37,57 @@
 
 | Workflow | Schedule | What it does |
 |----------|----------|--------------|
-| `leetcode-tracker.yml` | Daily @ 6 AM UTC | Logs solve count & streak to `daily.csv` |
-| `leetcode-tracker.yml` | Every Sunday | Generates weekly markdown report |
+| `leetcode-tracker.yml` | Daily @ 6 AM UTC | Logs stats, heatmap, recent AC submissions, badges |
+| `leetcode-tracker.yml` | Every Sunday | Generates full weekly report |
 
 ---
 
-## 📈 Progress Log
+## 📈 What Gets Tracked
 
-<!-- This section is updated automatically via GitHub Actions -->
-> Latest stats are always reflected in the badges above.
-> Check [`leetcode/logs/daily.csv`](./leetcode/logs/daily.csv) for the full history.
+| Data | File | Frequency |
+|------|------|-----------|
+| Easy / Medium / Hard / Total solved | `daily.csv` | Daily |
+| Current streak | `daily.csv` | Daily |
+| Total active days | `daily.csv` | Daily |
+| Global ranking | `daily.csv` | Daily |
+| Submission heatmap | `heatmap.json` | Daily |
+| Recent AC submissions (last 10) | `recent-ac.md` | Daily |
+| All badges + earned dates | `badges.md` | Daily |
+| Full weekly summary | `week-YYYY-WXX.md` | Weekly (Sunday) |
+
+---
+
+## 📝 Recent Accepted Submissions
+
+> 📄 [View latest accepted submissions](./leetcode/logs/recent-ac.md)
+
+---
+
+## 🎖️ Badges
+
+> 📄 [View all earned badges](./leetcode/reports/badges.md)
 
 ---
 
 ## 📅 Weekly Reports
 
-Weekly summaries are auto-generated every Sunday in [`leetcode/reports/`](./leetcode/reports/).
+Weekly summaries auto-generated every Sunday in [`leetcode/reports/`](./leetcode/reports/).
 
 Each report includes:
-- ✅ Cumulative Easy / Medium / Hard counts
-- 🔥 Current streak
-- 📅 Total active days
+- ✅ Cumulative Easy / Medium / Hard / Total counts
+- 🔥 Current streak & total active days
+- 🏅 Global ranking
+- 🎖️ Total badges earned
+- 📝 Top 5 recent accepted submissions
 
 ---
 
 ## 🧠 About
 
-I'm solving LeetCode daily to sharpen my problem-solving skills and prepare for technical interviews.
+Solving LeetCode daily to sharpen problem-solving skills and prepare for technical interviews.
 
 - 🔗 [My LeetCode Profile](https://leetcode.com/u/sujitharao93/)
-- 📬 Feel free to connect or discuss solutions!
 
 ---
 
-## 🚀 How to Use This Template
-
-Want to set up the same automated tracking for yourself?
-
-1. Fork this repo
-2. Change `LEETCODE_USERNAME` in `.github/workflows/leetcode-tracker.yml`
-3. Enable **Read & Write** permissions under Settings → Actions → General
-4. Run the workflow manually once to verify
-
----
-
-*Last updated automatically by GitHub Actions* 🤖
+*Updated daily by GitHub Actions 🤖*
