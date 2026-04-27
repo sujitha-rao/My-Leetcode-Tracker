@@ -1,8 +1,8 @@
-# Recent Accepted Submissions — 2026-04-26
+# Recent Accepted Submissions — 2026-04-27
 
 | # | Problem | Date |
 |---|---------|------|
-| 1 | [Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/) | 2026-04-25 |
+| 1 | [Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/) | 2026-04-26 |
 | 2 | [Time Needed to Buy Tickets](https://leetcode.com/problems/time-needed-to-buy-tickets/) | 2026-04-24 |
 | 3 | [Number of Students Unable to Eat Lunch](https://leetcode.com/problems/number-of-students-unable-to-eat-lunch/) | 2026-04-23 |
 | 4 | [Invalid Tweets](https://leetcode.com/problems/invalid-tweets/) | 2026-04-22 |
