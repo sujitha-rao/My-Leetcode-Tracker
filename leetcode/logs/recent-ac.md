@@ -1,8 +1,8 @@
-# Recent Accepted Submissions — 2026-05-05
+# Recent Accepted Submissions — 2026-05-06
 
 | # | Problem | Date |
 |---|---------|------|
-| 1 | [Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/) | 2026-05-05 |
+| 1 | [Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/) | 2026-05-06 |
 | 2 | [Last Stone Weight](https://leetcode.com/problems/last-stone-weight/) | 2026-04-27 |
 | 3 | [Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/) | 2026-04-26 |
 | 4 | [Time Needed to Buy Tickets](https://leetcode.com/problems/time-needed-to-buy-tickets/) | 2026-04-24 |
