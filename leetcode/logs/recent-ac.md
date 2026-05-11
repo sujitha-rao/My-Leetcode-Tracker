@@ -1,8 +1,8 @@
-# Recent Accepted Submissions — 2026-05-10
+# Recent Accepted Submissions — 2026-05-11
 
 | # | Problem | Date |
 |---|---------|------|
-| 1 | [Last Stone Weight](https://leetcode.com/problems/last-stone-weight/) | 2026-05-09 |
+| 1 | [Last Stone Weight](https://leetcode.com/problems/last-stone-weight/) | 2026-05-10 |
 | 2 | [Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/) | 2026-05-06 |
 | 3 | [Last Stone Weight](https://leetcode.com/problems/last-stone-weight/) | 2026-04-27 |
 | 4 | [Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/) | 2026-04-26 |
