@@ -1,8 +1,8 @@
-# Recent Accepted Submissions — 2026-05-14
+# Recent Accepted Submissions — 2026-05-15
 
 | # | Problem | Date |
 |---|---------|------|
-| 1 | [Last Stone Weight](https://leetcode.com/problems/last-stone-weight/) | 2026-05-13 |
+| 1 | [Last Stone Weight](https://leetcode.com/problems/last-stone-weight/) | 2026-05-14 |
 | 2 | [License Key Formatting](https://leetcode.com/problems/license-key-formatting/) | 2026-05-13 |
 | 3 | [Detect Capital](https://leetcode.com/problems/detect-capital/) | 2026-05-12 |
 | 4 | [Construct Target Array With Multiple Sums](https://leetcode.com/problems/construct-target-array-with-multiple-sums/) | 2026-05-11 |
