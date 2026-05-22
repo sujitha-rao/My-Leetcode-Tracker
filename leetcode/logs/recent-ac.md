@@ -1,8 +1,8 @@
-# Recent Accepted Submissions — 2026-05-21
+# Recent Accepted Submissions — 2026-05-22
 
 | # | Problem | Date |
 |---|---------|------|
-| 1 | [License Key Formatting](https://leetcode.com/problems/license-key-formatting/) | 2026-05-20 |
+| 1 | [License Key Formatting](https://leetcode.com/problems/license-key-formatting/) | 2026-05-21 |
 | 2 | [Last Stone Weight](https://leetcode.com/problems/last-stone-weight/) | 2026-05-17 |
 | 3 | [License Key Formatting](https://leetcode.com/problems/license-key-formatting/) | 2026-05-13 |
 | 4 | [Detect Capital](https://leetcode.com/problems/detect-capital/) | 2026-05-12 |
