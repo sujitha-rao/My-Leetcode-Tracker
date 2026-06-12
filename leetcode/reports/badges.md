@@ -1,6 +1,7 @@
-# LeetCode Badges — 2026-06-11
+# LeetCode Badges — 2026-06-12
 
-Total badges earned: **0**
+Total badges earned: **1**
 
 | Badge | Earned On |
 |-------|-----------|
+| 50 Days Badge 2026 | 2026-06-11 |
