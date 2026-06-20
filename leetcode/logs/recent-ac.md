@@ -1,8 +1,8 @@
-# Recent Accepted Submissions — 2026-06-19
+# Recent Accepted Submissions — 2026-06-20
 
 | # | Problem | Date |
 |---|---------|------|
-| 1 | [Repeated String Match](https://leetcode.com/problems/repeated-string-match/) | 2026-06-11 |
+| 1 | [Repeated String Match](https://leetcode.com/problems/repeated-string-match/) | 2026-06-19 |
 | 2 | [Rotate String](https://leetcode.com/problems/rotate-string/) | 2026-06-11 |
 | 3 | [Repeated Substring Pattern](https://leetcode.com/problems/repeated-substring-pattern/) | 2026-06-11 |
 | 4 | [Masking Personal Information](https://leetcode.com/problems/masking-personal-information/) | 2026-06-11 |
