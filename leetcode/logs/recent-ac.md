@@ -1,4 +1,4 @@
-# Recent Accepted Submissions — 2026-08-24
+# Recent Accepted Submissions — 2026-08-25
 
 | # | Problem | Date |
 |---|---------|------|
